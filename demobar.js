@@ -3,7 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import store from './src/stores/store';
 import { ReactFormGenerator } from './src/index';
 
-const answers = {};
+// This function is used to set the callback for saving JSON data
+let saveCallback = (jsonData) => {};
+
+export function setSaveCallback(callback) {
+  saveCallback = callback;
+}
 
 export default function Demobar(props) {
   const [data, setData] = React.useState([]);
@@ -14,38 +19,46 @@ export default function Demobar(props) {
   const [jsonData, setJsonData] = React.useState('');
   const navigate = useNavigate();
 
+  // Update the data state whenever the store changes
   React.useEffect(() => {
     const update = (state) => setData(state.data);
     const unsubscribe = store.subscribe(update);
     return () => unsubscribe();
   }, []);
 
+  // Function to save form data and trigger the callback
   const saveFormData = () => {
     const jsonData = JSON.stringify(data, null, 2); // Pretty-print JSON
     setJsonData(jsonData);
+    if (saveCallback) saveCallback(jsonData); // Call the callback with the JSON data
     store.dispatch('post');
   };
 
+  // Show the preview of the form
   const showPreview = () => {
     saveFormData();
     navigate('/form-view', { state: { formData: data } }); // Pass data through navigation state
   };
 
+  // Show the short preview of the form
   const showShortPreview = () => {
     saveFormData();
     setShortPreviewVisible(true);
   };
 
+  // Show the read-only preview of the form
   const showRoPreview = () => {
     saveFormData();
     setRoPreviewVisible(true);
   };
 
+  // Show the JSON data preview
   const showJsonPreview = () => {
     saveFormData();
     setJsonPreviewVisible(true);
   };
 
+  // Close all previews
   const closePreview = () => {
     setPreviewVisible(false);
     setShortPreviewVisible(false);
